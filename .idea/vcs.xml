@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cantina" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cantina/pantoufle" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cantina/pantoufle/cantina_common" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cantina/pantoufle/cantina_common/modules" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cantina/third-party/soundtouch" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cantina_juce/third-party/JUCE" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/third-party/JUCE" vcs="Git" />
+  </component>
+</project>

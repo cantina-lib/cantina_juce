@@ -1,0 +1,10 @@
+
+## Some pure-data specifics
+
+# Sources
+.pd     text diff
+
+# Externals (shared libraries)
+.pd_linux   binary      # linux
+.pd_darwin  binary      # mac
+.dll        binary      # windows
