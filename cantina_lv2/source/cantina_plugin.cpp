@@ -5,10 +5,10 @@
 #include <memory>
 #include <cmath>
 
-#include <cantina_plugin.hpp>
+#include "cantina_plugin.hpp"
 
-#include "lv2/atom/util.h"
-#include "lv2/core/lv2_util.h"
+#include <lv2/atom/util.h>
+#include <lv2/core/lv2_util.h>
 
 static constexpr float db_gain_to_coef(float gain) {
     return gain > -90.0f ? std::pow(10.0f, gain * 0.05f) : 0.0f;

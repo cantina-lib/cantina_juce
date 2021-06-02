@@ -5,13 +5,13 @@
 #ifndef CANTINA_LV2_INCLUDE_CANTINA_PLUGIN_HPP
 #define CANTINA_LV2_INCLUDE_CANTINA_PLUGIN_HPP
 
-#include "lv2/core/lv2.h"
-#include "lv2/atom/atom.h"
-#include "lv2/patch/patch.h"
-#include "lv2/log/log.h"
-#include "lv2/log/logger.h"
-#include "lv2/midi/midi.h"
-#include "lv2/urid/urid.h"
+#include <lv2/core/lv2.h>
+#include <lv2/atom/atom.h>
+#include <lv2/patch/patch.h>
+#include <lv2/log/log.h>
+#include <lv2/log/logger.h>
+#include <lv2/midi/midi.h>
+#include <lv2/urid/urid.h>
 
 #include <cant/Cantina.hpp>
 #include <cant/pan/Pantoufle.hpp>
