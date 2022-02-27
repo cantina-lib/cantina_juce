@@ -4,7 +4,11 @@
 ### Info
 
 Cantina as an audio plug-in.
-Working only on LV2 for now.
+Support:
+- Pure-Data
+Planned:
+- Faust
+- LV2 (?)
 
 ### Build 
 
