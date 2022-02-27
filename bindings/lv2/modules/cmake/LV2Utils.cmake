@@ -21,16 +21,15 @@ function(validate_ttl)
         file(GLOB_RECURSE SCHEMAS ${ARGS_SCHEMAS_DIR}/*.ttl)
         set(TTL_FILES ${SCHEMAS})
         list(APPEND TTL_FILES ${ARGS_TTL_SRC}) 
-        # list(TRANSFORM TTL_FILES APPEND " ")
         # set(LV2_VALIDATE_COMMAND sord_validate "$(find ${LV2_SCHEMAS_DIRS} -name '*.ttl') $(find ${PLUGIN_DATA_PATH} -name '*.ttl')")
         # message(STATUS ${LV2_VALIDATE_COMMAND})
         execute_process(COMMAND sord_validate ${TTL_FILES}
                 OUTPUT_VARIABLE LV2_SORD_OUTPUT
                 ERROR_VARIABLE LV2_SORD_ERROR
                 OUTPUT_STRIP_TRAILING_WHITESPACE
+                ECHO_ERROR_VARIABLE
+                COMMAND_ERROR_IS_FATAL ANY
         )
-        message(STATUS ${LV2_SORD_OUTPUT})
-        message(STATUS ${LV2_SORD_ERROR})
 endfunction(validate_ttl)
 
 function(add_lv2_plugin

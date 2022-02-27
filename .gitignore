@@ -1,5 +1,8 @@
 # piptouque
 
+# (clangd) cache
+.cache/
+
 # build folders
 build/
 cmake-build-debug/

@@ -39,7 +39,7 @@ juce_add_plugin(${PROJECT_NAME}
         COMPANY_NAME cantina-lib
         FORMATS ${JUCE_FORMATS}
         VERSION ${CANTINA_VERSION}
-        ProductName "Cantina"
+        PRODUCT_NAME "Cantina"
         MICROPHONE_PERMISSION_ENABLED TRUE
         LV2_URI ${CANTINA_URI}
         LV2_SHARED_LIBRARY_NAME ${PROJECT_NAME}
