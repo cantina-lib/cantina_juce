@@ -11,3 +11,4 @@ function(get_subdirectories RESULT DIRECTORY)
     endforeach()
     set(${RESULT} ${DIRLIST} PARENT_SCOPE)
 endfunction(get_subdirectories)
+

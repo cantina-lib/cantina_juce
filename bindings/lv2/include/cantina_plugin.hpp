@@ -43,9 +43,11 @@ struct CantinaPlugin {
         float * output;
     } ports;
 
+    double rate;
     //Cantina
     std::unique_ptr<cant::Cantina> cantina;
-    float** outputBuffers;
+    float *seedOutputBuffer;
+    float **harmonicsOutputBuffers;
     uint32_t cachedBlockSize;
 
 };

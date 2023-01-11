@@ -44,7 +44,6 @@ typedef struct {
   t_outlet *x_out_pitch;
   /* internal */
   std::unique_ptr<cant::Cantina> cantina;
-  std::vector<t_sample *> s_vec_harmonics;
   /* cache */
   /** time **/
   // see const!

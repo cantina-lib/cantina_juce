@@ -11,9 +11,11 @@
 #
 # It sets the following variables:
 #   LV2_FOUND                  ... true if lv2 is found on the system
-#   LV2_SCHEMAS_DIR           ... lv2 schemas directory paths (ttf validation templates)
+#   LV2_SCHEMAS_DIR            ... lv2 schemas directory paths (ttf validation templates)
 # It does NOT set the following variables:
 #   LV2_LIBRARIES              ... because LV2 is header-only
+# Instead, it creates the following library:
+#   LV2                        ...Interface library (header-only)
 #
 # The following variables will be checked by the function
 #   LV2_USE_STATIC_LIBS        ... if true, only static libraries are found, otherwise both static and shared.
@@ -100,5 +102,5 @@ find_package_handle_standard_args(LV2
 mark_as_advanced(
         LV2_LIBRARIES
         LV2_INCLUDE_DIRS
-       LV2_SCHEMAS_DIR 
+        LV2_SCHEMAS_DIR
 )
