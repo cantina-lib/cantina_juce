@@ -2,7 +2,7 @@
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 
 
-<http://lv2plug.in/plugins/cantina>
+<@LIB_URI@>
     a lv2:Plugin ;
-    lv2:binary <Contents/Binary/cantina.lv2@LIB_EXT@> ;
+    lv2:binary <@LIB_BIN@> ;
     rdfs:seeAlso <cantina.ttl> .

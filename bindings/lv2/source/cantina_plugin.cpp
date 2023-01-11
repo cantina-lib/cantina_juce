@@ -244,7 +244,7 @@ run(LV2_Handle instance, uint32_t n_samples) {
 }
 
 static LV2_Descriptor const descriptor = {
-    CANTINA_URI,
+    PLUGIN_URI,
     instantiate,
     connect_port,
     activate,

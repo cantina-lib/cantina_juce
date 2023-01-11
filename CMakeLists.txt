@@ -22,7 +22,8 @@ set(CANTINA_PLUGIN_JUCE_DIR ${CANTINA_PLUGIN_BINDINGS_DIR}/juce)
 #
 set(CANTINA_PLUGIN_OUTPUT_DIR ${PROJECT_BINARY_DIR}/cantina_plugin)
 
-set(CANTINA_URI "http://lv2plug.in/selfs/cantina")
+set(CANTINA_URI "http://lv2plug.in/cantina")
+set(CANTINA_HOME "https://github.com/cantina-lib/cantina")
 
 # Add dependencies first so that they are valid in the plug-ins.
 # cantina

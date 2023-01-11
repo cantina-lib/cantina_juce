@@ -26,7 +26,6 @@ message("GIT_SUBMODULE_DIR:    : " ${GIT_SUBMODULE_DIR})
 set(PD_DIR ${GIT_SUBMODULE_DIR}/pure-data)
 
 set(CMAKE_SUPPRESS_REGENERATION true)
-# who cares about mac anyway ?
 set(CMAKE_MACOSX_RPATH off)
 set(CMAKE_OSX_DEPLOYMENT_TARGET 10.4)
 set(CMAKE_OSX_ARCHITECTURES "i386;x86_64")
@@ -37,14 +36,14 @@ set_pd_sources(${THIRDPARTY_DIR}/pure-data/src)
 set_pd_external_path(${CANTINA_TILDE_EXTERNAL_DIR})
 set(CANTINA_TILDE_FILES
         # external
-        ${CANTINA_TILDE_SOURCE_DIR}/cantina~.cpp
-        ${CANTINA_TILDE_INCLUDE_DIR}/cantina~.hpp
+        "${CANTINA_TILDE_SOURCE_DIR}/cantina~.cpp"
+        "${CANTINA_TILDE_INCLUDE_DIR}/cantina~.hpp"
         )
 
-add_pd_external(${PROJECT_NAME} cantina~ ${CANTINA_TILDE_FILES})
-# add_pd_external(bitcrush_tilde bitcrush~ ${BITCRUSH_TILDE_FILES})
+add_pd_external(${PROJECT_NAME} "cantina~" ${CANTINA_TILDE_FILES})
+# add_pd_external(bitcrush_tilde "bitcrush~" ${BITCRUSH_TILDE_FILES})
 
-# no special flags for this one, since it's mess.
+# no special flags for this one, since it's a mess.
 target_compile_options(${PROJECT_NAME} PRIVATE "")# ${CANTINA_CXX_FLAGS})
 target_compile_features(${PROJECT_NAME} PRIVATE ${CANTINA_CXX_STANDARD})
 

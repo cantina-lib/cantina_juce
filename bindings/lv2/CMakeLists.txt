@@ -9,7 +9,6 @@ set(CANTINA_LV2_DATA_DIR ${PROJECT_SOURCE_DIR}/data)
 
 set(CANTINA_LV2_PLUGIN_NAME "cantina.lv2")
 
-set(CANTINA_LV2_URI https://github.com/cantina-lib)
 
 set(CANTINA_LV2_OUTPUT_PATH ${PROJECT_BINARY_DIR}/${CANTINA_LV2_PLUGIN_NAME})
 
@@ -17,14 +16,14 @@ set(CANTINA_LV2_INCLUDES
         ${CANTINA_LV2_INCLUDE_DIR}/cantina_plugin.hpp
 )
 set(CANTINA_LV2_SOURCES
-        ${CANTINA_LV2_INCLUDE_DIR}/cantina_plugin.hpp
+        ${CANTINA_LV2_SOURCE_DIR}/cantina_plugin.cpp
 )
 set(CANTINA_LV2_FILES
         ${CANTINA_LV2_SOURCES}
         ${CANTINA_LV2_INCLUDES}
         )
 
-set(CANTINA_LV2_TTL
+set(CANTINA_LV2_TTL_TEMPLATES
         ${CANTINA_LV2_DATA_DIR}/manifest.ttl.in
         ${CANTINA_LV2_DATA_DIR}/cantina.ttl.in
         )
@@ -32,12 +31,15 @@ include(LV2Utils)
 
 add_lv2_plugin(
         NAME ${CANTINA_LV2_PLUGIN_NAME}
-        TTL_SRC ${CANTINA_LV2_TTL}
+        TTL_TEMPLATES ${CANTINA_LV2_TTL_TEMPLATES}
         OUTPUT_PATH ${CANTINA_LV2_OUTPUT_PATH}
+        URI ${CANTINA_URI}
+        HOME ${CANTINA_HOME}
         )
+set(CANTINA_LV2_TTL_FILES ${TTL_OUTPUT})
 
-target_sources(${CANTINA_LV2_PLUGIN_NAME} PRIVATE ${CANTINA_LV2_FILES})
-target_include_directories(${CANTINA_LV2_PLUGIN_NAME} PRIVATE ${CANTINA_LV2_INCLUDE_DIR})
+target_sources(${CANTINA_LV2_PLUGIN_NAME} PUBLIC ${CANTINA_LV2_FILES})
+target_include_directories(${CANTINA_LV2_PLUGIN_NAME} PUBLIC ${CANTINA_LV2_INCLUDE_DIR})
 
 # no special flags for this one, since it's mess.
 target_compile_options(${CANTINA_LV2_PLUGIN_NAME} PRIVATE "")# ${CANTINA_CXX_FLAGS})
@@ -45,4 +47,4 @@ target_compile_features(${CANTINA_LV2_PLUGIN_NAME} PRIVATE ${CANTINA_CXX_STANDAR
 
 target_link_libraries(${CANTINA_LV2_PLUGIN_NAME} PUBLIC ${CANTINA_LIBRARIES})
 
-install_lv2_plugin(NAME ${CANTINA_LV2_PLUGIN_NAME} TTL_SRC ${CANTINA_LV2_TTL} INC ${CANTINA_LV2_INCLUDES})
+install_lv2_plugin(NAME ${CANTINA_LV2_PLUGIN_NAME} TTL_FILES ${CANTINA_LV2_TTL_FILES} INCLUDES ${CANTINA_LV2_INCLUDES})

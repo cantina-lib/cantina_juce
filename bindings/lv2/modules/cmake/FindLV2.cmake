@@ -87,7 +87,6 @@ set(LV2_SCHEMAS_DIR ${LV2_SCHEMAS_DIRS_PARENT} CACHE INTERNAL "LV2 schemas paren
 add_library(LV2 INTERFACE IMPORTED)
 set_target_properties(LV2
         PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${LV2_INCLUDE_DIRS}"
-        INTERFACE_LINK_LIBRARIES "${LV2_LIBRARIES}"
         )
 
 set(CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_FIND_LIBRARY_SUFFIXES_SAV})
@@ -100,7 +99,6 @@ find_package_handle_standard_args(LV2
         )
 
 mark_as_advanced(
-        LV2_LIBRARIES
         LV2_INCLUDE_DIRS
         LV2_SCHEMAS_DIR
 )

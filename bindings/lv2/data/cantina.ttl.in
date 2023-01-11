@@ -8,9 +8,9 @@
 @prefix urid: <http://lv2plug.in/ns/ext/urid#> .
 @prefix midi: <http://lv2plug.in/ns/ext/midi#> .
 
-<http://lv2plug.in/plugins/cantina> a lv2:Plugin , lv2:OscillatorPlugin , doap:Project ;
+<@LIB_URI@> a lv2:Plugin , lv2:OscillatorPlugin , doap:Project ;
         doap:name "Cantina" ;
-        # lv2:project <https://github.com/cantina-lib/cantina> ;
+        # lv2:project <@LIB_HOME@> ;
         lv2:requiredFeature urid:map ;
         lv2:optionalFeature lv2:hardRTCapable ;
         lv2:minorVersion 2 ;
