@@ -1,4 +1,4 @@
-# - Find the LADSPA v2 (LV2) development library
+#  - Find the LADSPA v2 (LV2) development library
 #
 # Based on FindFFTW.cmake:
 #   Copyright (c) 2015, Wenzel Jakob
@@ -11,7 +11,7 @@
 #
 # It sets the following variables:
 #   LV2_FOUND                  ... true if lv2 is found on the system
-#   LV2_SCHEMAS_DIR            ... lv2 schemas directory paths (ttf validation templates)
+#   LV2_SCHEMA_DIR            ... lv2 schemas directory paths (ttf validation templates)
 # It does NOT set the following variables:
 #   LV2_LIBRARIES              ... because LV2 is header-only
 # Instead, it creates the following library:
@@ -55,7 +55,7 @@ if (LV2_ROOT)
             )
 
     #find schemas
-    find_path(LV2_SCHEMAS_DIRS_CHILD
+    find_path(LV2_SCHEMA_DIRS_CHILD
             NAMES "lv2" "schemas" "schemas.lv2"
             PATHS ${LV2_ROOT}
             PATH_SUFFIXES "lib"
@@ -71,7 +71,7 @@ else ()
             )
 
     # todo: better arguments.
-    find_path(LV2_SCHEMAS_DIRS_CHILD
+    find_path(LV2_SCHEMA_DIRS_CHILD
             NAMES "manifest.ttl" "dcs.ttl"
             PATHS ${PKG_LV2_LIBRARY_DIRS} ${LIB_INSTALL_DIR} "/usr/lib"
             PATH_SUFFIXES "lib" "lv2" "lv2/schemas.lv2"
@@ -79,9 +79,9 @@ else ()
 
 endif (LV2_ROOT)
 
-get_filename_component(LV2_SCHEMAS_DIRS_PARENT ${LV2_SCHEMAS_DIRS_CHILD} DIRECTORY)
-# get_subdirectories(LV2_SCHEMAS_DIR ${LV2_SCHEMAS_DIRS_PARENT})
-set(LV2_SCHEMAS_DIR ${LV2_SCHEMAS_DIRS_PARENT} CACHE INTERNAL "LV2 schemas parent directory")
+get_filename_component(LV2_SCHEMA_DIRS_PARENT ${LV2_SCHEMA_DIRS_CHILD} DIRECTORY)
+# get_subdirectories(LV2_SCHEMA_DIR ${LV2_SCHEMA_DIRS_PARENT})
+set(LV2_SCHEMA_DIR ${LV2_SCHEMA_DIRS_PARENT} CACHE INTERNAL "LV2 schemas parent directory")
 
 
 add_library(LV2 INTERFACE IMPORTED)
@@ -100,5 +100,5 @@ find_package_handle_standard_args(LV2
 
 mark_as_advanced(
         LV2_INCLUDE_DIRS
-        LV2_SCHEMAS_DIR
+        LV2_SCHEMA_DIR
 )

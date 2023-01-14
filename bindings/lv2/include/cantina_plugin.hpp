@@ -5,6 +5,9 @@
 #ifndef CANTINA_LV2_INCLUDE_CANTINA_PLUGIN_HPP
 #define CANTINA_LV2_INCLUDE_CANTINA_PLUGIN_HPP
 
+#include <vector>
+#include <memory>
+
 #include <lv2/core/lv2.h>
 #include <lv2/atom/atom.h>
 #include <lv2/patch/patch.h>
@@ -38,7 +41,7 @@ struct CantinaPlugin {
     struct {
         LV2_Atom_Sequence  const * control;
         float const * gain;
-        int const *n_voices;
+        int const *nb_voices;
         float const * input;
         float * output;
     } ports;
@@ -46,6 +49,8 @@ struct CantinaPlugin {
     double rate;
     //Cantina
     std::unique_ptr<cant::Cantina> cantina;
+    // std::vector<float> seedOutputBuffer;
+    // std::vector<std::vector<float>> harmonicsOutputBuffers;
     float *seedOutputBuffer;
     float **harmonicsOutputBuffers;
     uint32_t cachedBlockSize;

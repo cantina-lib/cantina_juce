@@ -9,34 +9,33 @@ set(LV2_PLUGIN_LIB_DIR "Contents/Binary")
 set(LV2_PLUGIN_RES_DIR "Contents/Resources")
 set(LV2_PLUGIN_INC_DIR "Contents/Headers")
 
-function(validate_ttl)
+function(lv2_validate_ttl)
         cmake_parse_arguments(
                 ARGS
                 "" # empty options
-                "SCHEMAS_DIR" # dir of LV2 install
-                "TTL" # list of ttl files
+                "SCHEMA_DIR" # dir of LV2 install
+                "TTL_FILES" # list of ttl files
                 ${ARGN}
         )
-        file(GLOB_RECURSE SCHEMAS ${ARGS_SCHEMAS_DIR}/*.ttl)
-        set(TTL_FILES ${SCHEMAS})
-        list(APPEND TTL_FILES ${ARGS_TTL})
-        # set(LV2_VALIDATE_COMMAND sord_validate "$(find ${LV2_SCHEMAS_DIRS} -name '*.ttl') $(find ${PLUGIN_DATA_PATH} -name '*.ttl')")
-        # message(STATUS ${LV2_VALIDATE_COMMAND})
-        execute_process(COMMAND sord_validate ${TTL_FILES}
+        file(GLOB_RECURSE SCHEMAS ${ARGS_SCHEMA_DIR}/*.ttl)
+        set(TTL_SCHEMAS ${SCHEMAS})
+        set(LV2_VALIDATE_COMMAND sord_validate )
+        message(STATUS "Executing LV2 validate command ${LV2_VALIDATE_COMMAND} from schema dir ${ARGS_SCHEMA_DIR}")
+        execute_process(COMMAND  ${LV2_VALIDATE_COMMAND} ${TTL_SCHEMAS} ${ARGS_TTL_FILES}
                 OUTPUT_VARIABLE LV2_SORD_OUTPUT
                 ERROR_VARIABLE LV2_SORD_ERROR
                 OUTPUT_STRIP_TRAILING_WHITESPACE
                 ECHO_ERROR_VARIABLE
                 COMMAND_ERROR_IS_FATAL ANY
         )
-endfunction(validate_ttl)
+endfunction(lv2_validate_ttl)
 
-function(add_lv2_plugin)
+function(lv2_add_plugin)
 
     cmake_parse_arguments(
             ARGS
             "" # empty options
-            "NAME;URI;HOME;OUTPUT_PATH" #
+            "NAME;URI;HOME;OUTPUT_PATH;OUTPUT_TTL;SCHEMA_DIR" # OUTPUT_TTL:var for storing output ttl files
             "SOURCES;TTL_TEMPLATES" # list of source ttl and includes
             ${ARGN}
     )
@@ -48,6 +47,12 @@ function(add_lv2_plugin)
             )
     # LV2
     find_package(LV2 REQUIRED)
+    if (ARGS_SCHEMA_DIR)
+        # use user-provided schema dirs if given
+        set(SCHEMA_DIR ${ARGS_SCHEMA_DIR})
+    else()
+        set(SCHEMA_DIR ${LV2_SCHEMA_DIR})
+    endif(ARGS_SCHEMA_DIR)
 
     target_compile_definitions(${ARGS_NAME} PUBLIC ${LV2_DEFINITIONS})
     target_link_libraries(${ARGS_NAME} PUBLIC LV2)
@@ -72,15 +77,15 @@ function(add_lv2_plugin)
         configure_file(${TTL_TEMPLATE} ${TTL_FILE})
     endforeach()
     if (${VALIDATE_LV2})
-        validate_ttl(TTL ${TTL_FILES} SCHEMAS_DIR ${LV2_SCHEMAS_DIR})
+        lv2_validate_ttl(TTL_FILES ${TTL_FILES} SCHEMA_DIR ${SCHEMA_DIR})
     endif(${VALIDATE_LV2})
 
-    set(TTL_OUTPUT ${TTL_FILES} PARENT_SCOPE)
+    set(${ARGS_OUTPUT_TTL} ${TTL_FILES} PARENT_SCOPE)
 
-endfunction(add_lv2_plugin)
+endfunction(lv2_add_plugin)
 
 
-function(install_lv2_plugin)
+function(lv2_install_plugin)
     cmake_parse_arguments(
             ARGS
             "" # empty options
@@ -104,4 +109,4 @@ function(install_lv2_plugin)
         FILES ${ARGS_INCLUDES}
         DESTINATION "${LV2_PLUGIN_INSTALL_RELPATH}/${ARGS_NAME}/${LV2_PLUGIN_INC_DIR}"
     )
-endfunction(install_lv2_plugin)
+endfunction(lv2_install_plugin)

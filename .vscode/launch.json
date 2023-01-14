@@ -1,0 +1,19 @@
+{
+"version": "0.2.0",
+"configurations": [
+    {
+        "name": "Ardour",
+        "type": "cppdbg",
+        "request": "launch",
+        "miDebuggerPath": "/usr/sbin/ardour7",
+        "miDebuggerArgs": "--gdb",
+        "MIMode": "gdb",
+        "cwd": "${workspaceFolder}",
+        "program": "/usr/bin/ardour7",
+          "setupCommands": [
+            // {"text": "break main","ignoreFailures": true}
+            {"text": "run","ignoreFailures": false}
+        ],
+    }
+]
+}

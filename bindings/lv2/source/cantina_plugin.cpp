@@ -13,6 +13,7 @@
 #include <lv2/core/lv2_util.h>
 
 #define DEFAULT_BUFFER_SIZE 1024
+#define DEFAULT_NB_VOICES 4
 
 static constexpr float db_gain_to_coef(float gain) {
     return gain > -90.0f ? std::pow(10.0f, gain * 0.05f) : 0.0f;
@@ -30,11 +31,12 @@ int allocate_output_buffers(CantinaPlugin * self, uint32_t block_size) {
         // TODO: error
         return 0;
     }
-    self->harmonicsOutputBuffers = static_cast<float **>(malloc(*self->ports.n_voices * sizeof(float *)));
+    self->harmonicsOutputBuffers = static_cast<float **>(malloc(self->cantina->getNumberHarmonics() * sizeof(float *)));
     if (!self->harmonicsOutputBuffers) {
+        // TODO: error
         return 0;
     }
-    for (std::size_t voice = 0; voice < *self->ports.n_voices; ++voice) {
+    for (std::size_t voice = 0; voice < self->cantina->getNumberHarmonics(); ++voice) {
         self->harmonicsOutputBuffers[voice] = static_cast<float *>(
                 calloc(block_size, sizeof(float)));
         if (!self->harmonicsOutputBuffers[voice]) {
@@ -51,7 +53,7 @@ void free_output_buffers(CantinaPlugin * self) {
         free(self->seedOutputBuffer);
     }
     if (self->harmonicsOutputBuffers) {
-        for (std::size_t voice = 0; voice < *self->ports.n_voices; ++voice) {
+        for (std::size_t voice = 0; voice < self->cantina->getNumberHarmonics(); ++voice) {
             if (self->harmonicsOutputBuffers[voice]) {
                 free(self->harmonicsOutputBuffers[voice]);
             }
@@ -60,9 +62,9 @@ void free_output_buffers(CantinaPlugin * self) {
     }
 }
 
-void set_cantina(CantinaPlugin * self) {
-    self->cantina = std::make_unique<cant::Cantina>(
-            *self->ports.n_voices,
+void set_cantina(CantinaPlugin * self, size_t nb_voices) {
+    auto cantina = std::make_unique<cant::Cantina>(
+            nb_voices,
             self->rate,
             1 // channel
             );
@@ -87,7 +89,7 @@ instantiate([[maybe_unused]] LV2_Descriptor const * descriptor,
             [[maybe_unused]] double rate,
             [[maybe_unused]] char const* bundle_path,
             LV2_Feature const * const * features) {
-    auto self = static_cast<CantinaPlugin *>(calloc(1, sizeof(CantinaPlugin)));
+    auto self = static_cast<CantinaPlugin *>(malloc(sizeof(CantinaPlugin)));
     if (!self) {
         // TODO: ERROR
         return nullptr;
@@ -97,6 +99,7 @@ instantiate([[maybe_unused]] LV2_Descriptor const * descriptor,
         return nullptr;
     }
     self->rate = rate;
+    // default value for number of voices
 
     // Scan host features for URID map
     char const * missing = lv2_features_query(
@@ -113,8 +116,10 @@ instantiate([[maybe_unused]] LV2_Descriptor const * descriptor,
 
     map_cantina_uris(self->map, &self->uris);
 
+    size_t nb_voices = self->ports.nb_voices ? *self->ports.nb_voices : DEFAULT_NB_VOICES;
+
     try {
-        set_cantina(self);
+        set_cantina(self, nb_voices);
     } catch (cant::CantinaException const & e) {
         std::cerr << e.what() << std::endl;
     }
@@ -126,8 +131,10 @@ instantiate([[maybe_unused]] LV2_Descriptor const * descriptor,
 static void
 cleanup(LV2_Handle instance) {
     auto self = reinterpret_cast<CantinaPlugin *>(instance);
-    free_output_buffers(self);
-    free(instance);
+    if (self) {
+        free_output_buffers(self);
+        free(self);
+    }
 }
 
 
@@ -144,17 +151,20 @@ void merge_output(CantinaPlugin * self, float coef, uint32_t block_size) {
 static void
 connect_port(LV2_Handle instance, uint32_t port, void * data) {
     auto self = reinterpret_cast<CantinaPlugin *>(instance);
+    size_t nb_voices;
     switch (static_cast<EPortIndex>(port)) {
         case CANTINA_CONTROL:
             self->ports.control = reinterpret_cast<LV2_Atom_Sequence const *>(data);
             break;
         case CANTINA_NUMBERHARMONICS:
-            self->ports.n_voices = reinterpret_cast<int const *>(data);
+            self->ports.nb_voices = reinterpret_cast<int const *>(data);
+                nb_voices = self->ports.nb_voices ? *self->ports.nb_voices : DEFAULT_NB_VOICES;
+
             free_output_buffers(self);
             allocate_output_buffers(self, DEFAULT_BUFFER_SIZE);
             // todo: reset Cantina
             try {
-                set_cantina(self);
+                set_cantina(self, nb_voices);
             } catch (cant::CantinaException const & e) {
                 std::cerr << e.what() << std::endl;
             }
@@ -189,10 +199,10 @@ extension_data([[maybe_unused]] char const * uri) {
 }
 
 static void
-run(LV2_Handle instance, uint32_t n_samples) {
+run(LV2_Handle instance, uint32_t nb_samples) {
     auto self = reinterpret_cast<CantinaPlugin *>(instance);
 
-    update_output_buffers(self, n_samples);
+    update_output_buffers(self, nb_samples);
 
     // Notes and controls
     LV2_Atom_Sequence  const * seq = self->ports.control;
@@ -233,14 +243,14 @@ run(LV2_Handle instance, uint32_t n_samples) {
     try {
         self->cantina->update();
 
-        self->cantina->perform(self->ports.input, self->seedOutputBuffer, self->harmonicsOutputBuffers, n_samples);
+        self->cantina->perform(self->ports.input, self->seedOutputBuffer, self->harmonicsOutputBuffers, nb_samples);
 
     } catch (cant::CantinaException const &e) {
         std::cerr << e.what() << std::endl;
     }
 
     float coef = db_gain_to_coef(*self->ports.gain);
-    merge_output(self, coef, n_samples);
+    merge_output(self, coef, nb_samples);
 }
 
 static LV2_Descriptor const descriptor = {
