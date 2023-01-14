@@ -21,10 +21,11 @@
 
 enum EPortIndex {
     CANTINA_CONTROL = 0,
-    CANTINA_NUMBERHARMONICS = 1,
+    CANTINA_NUMBERVOICES = 1,
     CANTINA_GAIN = 2,
-    CANTINA_INPUT = 3,
-    CANTINA_OUTPUT = 4
+    CANTINA_INPUT_SEED = 3,
+    CANTINA_INPUT_TRACK = 4,
+    CANTINA_OUTPUT = 5
 } ;
 
 struct CantinaURIs {
@@ -41,19 +42,18 @@ struct CantinaPlugin {
     struct {
         LV2_Atom_Sequence  const * control;
         float const * gain;
-        int const *nb_voices;
-        float const * input;
+        int const * nb_voices;
+        float const * input_seed;
+        float const * input_track;
         float * output;
     } ports;
 
     double rate;
     //Cantina
     std::unique_ptr<cant::Cantina> cantina;
-    // std::vector<float> seedOutputBuffer;
-    // std::vector<std::vector<float>> harmonicsOutputBuffers;
-    float *seedOutputBuffer;
-    float **harmonicsOutputBuffers;
-    uint32_t cachedBlockSize;
+    std::vector<std::vector<float>> outputBuffers;
+    // float **outputBuffers;
+    uint32_t currentBlockSize;
 
 };
 

@@ -33,8 +33,9 @@ static t_class *cantina_tilde_class;
 typedef struct {
   t_object x_obj;
   t_sample f;
-  // first inlet is implicitly stored by
-  t_inlet *x_in_seed;
+  // in_seed: first inlet is implicitly stored by pd
+  // NO OTHER INLET OR OUTLET IS HANDLED BY IT!!
+  t_inlet *x_in_track;
   t_inlet *x_in_notes;
   t_inlet *x_in_controls;
   /* outlets */
@@ -68,22 +69,11 @@ void free_control_atoms(t_cantina_tilde *x) {
   freebytes(x->x_a_pitch, 2 * sizeof(t_atom));
 }
 
-void fill_vec_pitchargs(t_cantina_tilde *x, const cant::Pitch &pitch) {
+void copy_pitch(t_cantina_tilde *x, const cant::Pitch &pitch) {
   t_atom *a = x->x_a_pitch;
   // [value (Hz), confidence (in [0, 1])]
   SETFLOAT(a, static_cast<t_float>(pitch.getFreq()));
   SETFLOAT(a + 1, static_cast<t_float>(pitch.getConfidence()));
-}
-
-void fill_vec_dspargs(t_cantina_tilde *x, t_signal **sp) {
-  auto &vec = x->x_vec_dspargs;
-  vec.at(0) = reinterpret_cast<t_int>(x);            // x
-  vec.at(1) = static_cast<t_int>(sp[0]->s_n);        // blockSize
-  vec.at(2) = reinterpret_cast<t_int>(sp[0]->s_vec); // in
-  vec.at(3) = reinterpret_cast<t_int>(sp[1]->s_vec); // out seed
-  for (cant::size_u i = 0; i < x->cantina->getNumberHarmonics(); ++i) {
-    vec.at(4 + i) = reinterpret_cast<t_int>(sp[2 + i]->s_vec); // out harmonics
-  }
 }
 
 /******** implementation ********/
@@ -121,7 +111,7 @@ void *cantina_tilde_new(const t_symbol *, const int argc, t_atom *argv) {
   }
   /* inlet */
   /* first one managed automatically */
-  x->x_in_seed = inlet_new(&x->x_obj, &x->x_obj.ob_pd, &s_signal, &s_signal);
+  x->x_in_track = inlet_new(&x->x_obj, &x->x_obj.ob_pd, &s_signal, &s_signal);
   x->x_in_notes =
       inlet_new(&x->x_obj, &x->x_obj.ob_pd, &s_list, gensym("notes"));
   x->x_in_controls =
@@ -131,15 +121,13 @@ void *cantina_tilde_new(const t_symbol *, const int argc, t_atom *argv) {
   x->x_out_pitch = outlet_new(&x->x_obj, &s_list);
   /** signals again **/
   x->x_out_harmonics = static_cast<t_outlet **>(
-      getbytes(x->cantina->getNumberHarmonics() * sizeof(t_outlet *)));
+      getbytes(x->cantina->getNumberVoices() * sizeof(t_outlet *)));
   if (!x->x_out_harmonics) {
     bug("cantina~: failed to allocate harmonic outlets.");
   }
-  for (cant::size_u i = 0; i < x->cantina->getNumberHarmonics(); ++i) {
+  for (cant::size_u i = 0; i < x->cantina->getNumberVoices(); ++i) {
     x->x_out_harmonics[i] = outlet_new(&x->x_obj, &s_signal);
   }
-  /* dsp args vector */
-  x->x_vec_dspargs = std::vector<t_int>(4 + x->cantina->getNumberHarmonics());
   /* atoms */
   allocate_pitch_atoms(x);
   return static_cast<void *>(x);
@@ -152,14 +140,14 @@ void cantina_tilde_free(t_cantina_tilde *x) {
   // clock_free(x->x_clock);
   /* inlets */
   /** signals **/
-  inlet_free(x->x_in_seed);
+  inlet_free(x->x_in_track);
   /* outlets */
   /** signals **/
-  for (cant::size_u i = 0; i < x->cantina->getNumberHarmonics(); ++i) {
+  for (cant::size_u i = 0; i < x->cantina->getNumberVoices(); ++i) {
     outlet_free(x->x_out_harmonics[i]);
   }
   freebytes(x->x_out_harmonics,
-            x->cantina->getNumberHarmonics() * sizeof(t_outlet *));
+            x->cantina->getNumberVoices() * sizeof(t_outlet *));
   /** scalars **/
   outlet_free(x->x_out_pitch);
   /* inlets */
@@ -169,32 +157,44 @@ void cantina_tilde_free(t_cantina_tilde *x) {
   x->cantina.reset();
 }
 
+void fill_vec_dspargs(t_cantina_tilde *x, t_signal **sp) {
+  auto &vec = x->x_vec_dspargs;
+  /* dsp args vector */
+  vec = std::vector<t_int>(4 + x->cantina->getNumberVoices());
+  vec.at(0) = reinterpret_cast<t_int>(x);            // x
+  vec.at(1) = static_cast<t_int>(sp[0]->s_n);        // block_size
+  vec.at(2) = reinterpret_cast<t_int>(sp[0]->s_vec); // in seed
+  vec.at(3) = reinterpret_cast<t_int>(sp[1]->s_vec); // in track
+  for (cant::size_u i = 0; i < x->cantina->getNumberVoices(); ++i) {
+    vec.at(4 + i) = reinterpret_cast<t_int>(sp[2 + i]->s_vec); // out harmonics
+  }
+}
+
 t_int *cantina_tilde_perform(t_int *w) {
   auto *x = reinterpret_cast<t_cantina_tilde *>(w[1]);
-  auto blockSize = static_cast<std::size_t>(w[2]);
-  auto *in_track = reinterpret_cast<t_sample *>(w[3]);
-  auto *in_seed = reinterpret_cast<t_sample *>(w[4]);
-  if (!in_seed) {
-    // If the seed is not given, it is implied
-    // to also be tracked as well.
-    in_seed = in_track;
+  auto block_size = static_cast<std::size_t>(w[2]);
+  auto *in_seed = reinterpret_cast<t_sample *>(w[3]);
+  auto *in_track = reinterpret_cast<t_sample *>(w[4]);
+  if (!in_track) {
+    // If the tracked signal is not given,
+    // the seed should be tracked as well.
+    in_track = in_seed;
   }
   auto **out_harmonics = reinterpret_cast<t_sample **>(&w[5]);
-  /* for now, no computation on the first outlet
-   * -> seed bypass
-   */
   /** DOING STUFF **/
-  for (int i = 0; i < static_cast<int>(x->cantina->getNumberHarmonics()); ++i) {
+  for (int i = 0; i < static_cast<int>(x->cantina->getNumberVoices()); ++i) {
     /* resetting samples in outlet before filling it again */
-    std::fill(out_harmonics[i], out_harmonics[i] + blockSize, 0.);
+    std::fill(out_harmonics[i], out_harmonics[i] + block_size, 0.);
   }
   // seed
   /** CANT **/
   try {
     x->cantina->update();
-    x->cantina->perform(in_track, in_seed, out_harmonics, blockSize);
+    x->cantina->perform(in_seed, in_track, out_harmonics, block_size);
 
+    copy_pitch(x, x->cantina->getPitch());
     outlet_list(x->x_out_pitch, &s_list, 2, x->x_a_pitch);
+
   } catch (const cant::CantinaException &e) {
     std::cerr << e.what() << std::endl;
   }
@@ -226,12 +226,12 @@ void cantina_tilde_envelope(t_cantina_tilde *x, t_symbol *, int argc,
           type.data());
     }
     // make adsr envelope
-    auto adsr = cant::pan::ADSREnvelope::make(x->cantina->getNumberHarmonics());
+    auto adsr = cant::pan::ADSREnvelope::make(x->cantina->getNumberVoices());
 
     // make damper
-    const auto controllerId =
+    auto const controllerId =
         static_cast<cant::pan::id_u8>(atom_getint(argv + 1));
-    const auto channel = static_cast<cant::pan::id_u8>(atom_getint(argv + 2));
+    auto const channel = static_cast<cant::pan::id_u8>(atom_getint(argv + 2));
     auto damper = cant::pan::MidiDamper::make(channel, controllerId);
 
     // link the two
@@ -251,10 +251,10 @@ void cantina_tilde_notes(t_cantina_tilde *x, t_symbol *, int argc,
     return;
   }
   /* voices of the poly object start at 1 */
-  const auto tone = static_cast<cant::pan::tone_i8>(atom_getfloat(argv));
-  const auto velocity = static_cast<cant::pan::vel_i8>(atom_getfloat(argv + 1));
-  const auto channel = static_cast<cant::pan::id_u8>(atom_getfloat(argv + 2));
-  const auto data = cant::pan::MidiNoteInputData(channel, tone, velocity);
+  auto const tone = static_cast<cant::pan::tone_i8>(atom_getfloat(argv));
+  auto const velocity = static_cast<cant::pan::vel_i8>(atom_getfloat(argv + 1));
+  auto const channel = static_cast<cant::pan::id_u8>(atom_getfloat(argv + 2));
+  auto const data = cant::pan::MidiNoteInputData(channel, tone, velocity);
   std::optional<cant::size_u> optVoice;
   try {
     optVoice = x->cantina->receiveNote(data);

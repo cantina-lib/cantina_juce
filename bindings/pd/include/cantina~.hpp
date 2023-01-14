@@ -7,9 +7,6 @@
 
 #pragma once
 
-
-
 extern "C" void cantina_tilde_setup(void);
-
 
 #endif //LIB_CANTINA_TILDE_HPP

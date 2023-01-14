@@ -30,8 +30,7 @@ set(CANTINA_HOME "https://github.com/cantina-lib/cantina")
 set(CANTINA_DIR ${PROJECT_SOURCE_DIR}/cantina)
 add_subdirectory(${CANTINA_DIR})
 
-# add_subdirectory(${CANTINA_PLUGIN_PD_DIR})
-# FIX: no LV2 for now.
+add_subdirectory(${CANTINA_PLUGIN_PD_DIR})
 add_subdirectory(${CANTINA_PLUGIN_LV2_DIR})
 # absolutely not.
 # add_subdirectory(${CANTINA_PLUGIN_JUCE_DIR})

@@ -2,7 +2,7 @@
 "version": "0.2.0",
 "configurations": [
     {
-        "name": "Ardour",
+        "name": "LV2 - Ardour",
         "type": "cppdbg",
         "request": "launch",
         "miDebuggerPath": "/usr/sbin/ardour7",
@@ -10,6 +10,18 @@
         "MIMode": "gdb",
         "cwd": "${workspaceFolder}",
         "program": "/usr/bin/ardour7",
+          "setupCommands": [
+            // {"text": "break main","ignoreFailures": true}
+            {"text": "run","ignoreFailures": false}
+        ],
+    },
+    {
+        "name": "Pure Data",
+        "type": "cppdbg",
+        "request": "attach",
+        "miDebuggerPath": "/usr/sbin/gdb",
+        "MIMode": "gdb",
+        "program": "/usr/sbin/pd",
           "setupCommands": [
             // {"text": "break main","ignoreFailures": true}
             {"text": "run","ignoreFailures": false}
